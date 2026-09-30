@@ -1,16 +1,6 @@
 
 print("""Ejercicio 9. Base de datos de libros. \nCada libro tiene título, autor, año. Permite: \nañadir libro, buscar por autor, listar todos, salir.\n""")
-	
-	
-"""	seudocodigo:
-	1.	crear un diccionario
-    2. hacer menú q permita :
-	2. añadir libros con sus parámetros ( título, autor, año)
-	4. buscar por autor, por título y por año
-    5. listar
-   5. salir
-	
-"""
+
 def libro_existe(nombre, autor, año):
     for libro in lista:
         if (libro["Nombre"]== nombre and
