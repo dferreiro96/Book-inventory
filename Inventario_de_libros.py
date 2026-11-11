@@ -1,33 +1,143 @@
+import csv
+import json
 
-def libro_existe(nombre, autor, año, biblioteca):
-    for libro in biblioteca:
-        if (libro["Nombre"]== nombre and
-            libro["Autor"]== autor and
-            libro["Año"]==año):
-            return True
-    return False 
-    
+
+class Libro:
+    def __init__(self, nombre, año, autor):
+        self.nombre = nombre
+        self.año = año
+        self.autor = autor
+
+
+class Biblioteca:
+    def __init__(self):
+        self.lista_de_libros = self.descargar_datos()
+
+    def libro_existe(self, nombre, autor, año):
+        for libro in self.lista_de_libros:
+            if libro.nombre == nombre and libro.autor == autor and libro.año == año:
+                return True
+        return False
+
+    def buscar_elemento_por_nombre(self, mensaje):
+        nombre = pedir_texto(mensaje)
+        for libro in self.lista_de_libros:
+            if libro.nombre == nombre:
+                print(
+                    f"\nHa seleccionado el libro {libro.nombre}, escrito por {libro.autor} en el año {libro.año}\n"
+                )
+            else:
+                print(f"\nEl libro {nombre} no está en la base de datos.\n")
+
+    def buscar_elemento_por_autor(self, mensaje):
+        autor = pedir_texto(mensaje)
+        for libro in self.lista_de_libros:
+            if libro.autor == autor:
+                print(
+                    f"\nHa seleccionado el libro {libro.nombre}, escrito por {libro.autor} en el año {libro.año}\n"
+                )
+            else:
+                print(
+                    f"\nNo se encuentra ningún libro escrito por {autor} en la base de datos.\n"
+                )
+
+    def buscar_elemento_por_año(self, mensaje):
+        año = pedir_numero(mensaje)
+        for libro in self.lista_de_libros:
+            if libro.año == año:
+                print(
+                    f"\nHa seleccionado el libro {libro.nombre}, escrito por {libro.autor} en el año {libro.año}\n"
+                )
+            else:
+                print(
+                    f"\nNo se encuentra ningún libro escrito en el año {año} la base de datos.\n"
+                )
+
+    def añadir_libro(self, libro):
+        self.lista_de_libros.append(libro)
+
+    def mostrar_libros_ordenados(self):
+        ordenados = sorted(self.lista_de_libros, key=lambda x: x.nombre)
+        for i, libro in enumerate(ordenados, start=1):
+            print(
+                f"{i}. Nombre del libro: {libro.nombre}, Autor: {libro.autor}, Año: {libro.año}"
+            )
+
+    def convertir_datos_a_diccionario(self):
+        lista_de_diccionarios = []
+        for libro in self.lista_de_libros:
+            diccionario_libro = libro.__dict__.copy()
+            lista_de_diccionarios.append(diccionario_libro)
+        return lista_de_diccionarios
+
+    def guardar_datos(self):
+        datos_para_json = self.convertir_datos_a_diccionario()
+        with open("Registro_de_libros.json", "w", encoding="utf-8") as archivo:
+            json.dump(datos_para_json, archivo, ensure_ascii=False, indent=4)
+
+    def descargar_datos(self):
+        try:
+            with open("Registro_de_libros.json", "r", encoding="utf-8") as archivo:
+                datos = json.load(archivo)
+                lista_reconstruida = []
+                for libro in datos:
+                    objeto_libro = Libro(libro["nombre"], libro["año"], libro["autor"])
+                    lista_reconstruida.append(objeto_libro)
+                return lista_reconstruida
+
+        except FileNotFoundError:
+            print("\nNo se encontró la base de datos, se creará una nueva.")
+            return []
+        except json.JSONDecodeError:
+            print("\nLa base de datos está corrupta, se creará una nueva.")
+            return []
+
+    def exportar(self):
+        with open(
+            "Registro en tabla de la biblioteca.csv", "w", encoding="utf-8", newline=""
+        ) as archivo:
+            columnas = ["Nombre del libro", "Autor", "Año"]
+            escritor = csv.DictWriter(archivo, fieldnames=columnas)
+            escritor.writeheader()
+            for libro in self.lista_de_libros:
+                escritor.writerow(
+                    {
+                        "Nombre del libro": libro.nombre,
+                        "Autor": libro.autor,
+                        "Año": libro.año,
+                    }
+                )
+
+
 def pedir_numero(mensaje):
     while True:
         try:
-            num= int(input(mensaje))
+            num = int(input(mensaje))
             return num
         except ValueError:
             print("\nNo válido")
-            
-def guardar_datos(mensaje):
-        respuesta= input(mensaje)
-        while not respuesta.replace(" ", "").isalpha():
-            print("Solo se permiten letras y espacios")
-            respuesta= input(mensaje)
-        return respuesta
+
+
+def pedir_texto(mensaje):
+    respuesta = input(mensaje).capitalize().strip()
+    return respuesta
+
 
 def menu():
     print("\n______MENÚ_______")
     print("1. Añadir libro")
-    print ("2. Buscar")
+    print("2. Buscar")
     print("3. Listar")
-    print("4. Salir")            
+    print("4. Exportar a .csv")
+    print("5. Salir")
+
+
+def menu_búsqueda():
+    print("\nDesea buscar por 'Título', 'Autor' o 'Año'?\n")
+    print("1. Título")
+    print("2. Autor")
+    print("3. Año")
+
 
 def encontrar(opcion, opciones):
     while True:
@@ -35,80 +145,83 @@ def encontrar(opcion, opciones):
             return opcion
         else:
             print("Valor fuera de rango.")
-            opcion= pedir_numero("\nQué desea hacer? Introduzca un número del 1 al 4: ")
+            opcion = pedir_numero(
+                "\nQué desea hacer? Introduzca un número del 1 al 5: "
+            )
 
-def buscar_elemento(guardar_datos, mensaje, buscado, biblioteca):
-    lo_que_se_busca = guardar_datos(mensaje)
-    for libro in biblioteca:
-        if libro[buscado] == lo_que_se_busca:
-            return(f"\nHa seleccionado el libro {libro[buscado]}, escrito por {libro["Autor"]} en el año {libro["Año"]}\n")
-    return(f"\nEl libro {lo_que_se_busca} no está en la base de datos.\n")
 
-def jugar(biblioteca):
-    print("""\nEjercicio 9. Base de datos de libros. \nCada libro tiene título, autor, año. Permite: \nañadir libro, buscar por autor, listar todos, salir.\n""")
+def jugar():
+    mi_biblioteca = Biblioteca()
+    print(
+        """\nEjercicio: Base de datos de libros. \nCada libro tiene título, autor, año. Permite: \nañadir libro, buscar por autor, listar todos, salir.\n"""
+    )
+    if mi_biblioteca.lista_de_libros:
+        print("\nDatos recuperados")
     while True:
-      
-            menu() 
-            opciones = [1, 2, 3, 4]
-            opción= pedir_numero("\nQué desea hacer? Introduzca un número del 1 al 4: ")
-            seleccion= encontrar(opción, opciones)
-            
-            
-            if seleccion == 1:
-                nombre_del_libro= guardar_datos("\nIntroduzca el nombre del libro: ") .capitalize() .strip()
-                autor= guardar_datos ("Introduzca el autor del libro: ") .title()
-        
-                año= pedir_numero("Introduzca el año del libro: ")
-                while año <0:
-                    print("Introduzca un año válido")
-                    año= pedir_numero("Introduzca el año del libro: ")
-                        
-                if libro_existe(nombre_del_libro, autor, año, biblioteca):
-                    print("El libro ya existe")
-                else:
-                    biblioteca.append({"Nombre": nombre_del_libro, "Autor": autor, "Año": año})
-                    print(f"\nSe ha añadido el libro {nombre_del_libro}, escrito por {autor} en el año {año} satisfactoriamente.\n")
-                
-            elif seleccion == 2:
-                
-                    print("\nDesea buscar por 'Título', 'Autor' o 'Año'?\n")
-                    print("1. Título")
-                    print("2. Autor")
-                    print ("3. Año")
+        menu()
+        opciones = [1, 2, 3, 4, 5]
+        opción = pedir_numero("\nQué desea hacer? Introduzca un número del 1 al 5: ")
+        seleccion = encontrar(opción, opciones)
 
-                    buscar= pedir_numero("\n")
+        if seleccion == 1:
+            nombre_del_libro = (
+                pedir_texto("\nIntroduzca el nombre del libro: ").capitalize().strip()
+            )
+            autor = pedir_texto("Autor del libro: ").title()
+            año = pedir_numero("Año del libro: ")
+            while 0 > año or año > 2026:
+                print("\nIntroduzca un año válido")
+                año = pedir_numero("Introduzca el año del libro: ")
 
-                    while buscar <1 or buscar > 3:
-                            print ("Escoja una opción entre 1 y 3")
-                            buscar= pedir_numero("\n")
-                        
-                    if buscar ==1:
-                        buscar_elemento("\nIntroduzca el nombre del libro a buscar: ".capitalize(), "Nombre", biblioteca)
-                        
-                    elif buscar == 2:
-                        buscar_elemento("\nIntroduzca el autor del libro a buscar: ".title(), "Autor", biblioteca)
-                                
-                    elif buscar == 3:
-                        buscar_elemento("\nIntroduzca el año a buscar: ", "Año", biblioteca)
-                        
-                                
-            elif seleccion == 3:
-                if biblioteca ==[]:
-                    print ("\nNo ha guardado ningún libro.")
-                else:
-                    print ("\nLa relación de libros con sus autores y años de edición es la siguiente: \n")
-                    ordenados= sorted(biblioteca, key= lambda x: x ["Nombre"])
-                    for i, libro in enumerate (ordenados, start=1):
-                        print (f"{i}. Nombre del libro: {libro["Nombre"]}, Autor: {libro["Autor"]}, Año: {libro["Año"]}")
-                
-            elif seleccion == 4:
-                print("\nHa salido del programa satisfactoriamente\n")
-                return
-            
-        
+            if mi_biblioteca.libro_existe(nombre_del_libro, autor, año):
+                print("El libro ya existe")
+            else:
+                mi_libro = Libro(nombre_del_libro, año, autor)
+                mi_biblioteca.añadir_libro(mi_libro)
+                mi_biblioteca.guardar_datos()
+                print(
+                    f"\nSe ha añadido y guardado el libro {mi_libro.nombre}, escrito por {mi_libro.autor} en el año {mi_libro.año}.\n"
+                )
+
+        elif seleccion == 2:
+            menu_búsqueda()
+            buscar = pedir_numero("\n")
+            while buscar < 1 or buscar > 3:
+                print("Escoja una opción entre 1 y 3")
+                buscar = pedir_numero("\n")
+
+            if buscar == 1:
+                mi_biblioteca.buscar_elemento_por_nombre(
+                    "\nNombre del libro a buscar: "
+                )
+
+            elif buscar == 2:
+                mi_biblioteca.buscar_elemento_por_autor("\nAutor: ")
+
+            elif buscar == 3:
+                mi_biblioteca.buscar_elemento_por_año("\nAño del libro: ")
+
+        elif seleccion == 3:
+            if not mi_biblioteca.lista_de_libros:
+                print("\nNo ha guardado ningún libro.")
+            else:
+                print(
+                    "\nLa relación de libros con sus autores y años de edición es la siguiente: \n"
+                )
+                mi_biblioteca.mostrar_libros_ordenados()
+
+        elif seleccion == 4:
+            mi_biblioteca.exportar()
+            print("\nDatos exportado correctamente.\n")
+
+        else:
+            print("\nHa salido del programa satisfactoriamente\n")
+            return
+
+
 def main():
-    biblioteca = []
-    jugar(biblioteca)
- 
-if __name__=="__main__":
+    jugar()
+
+
+if __name__ == "__main__":
     main()
