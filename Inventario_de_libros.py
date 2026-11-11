@@ -7,11 +7,14 @@ class Libro:
         self.nombre = nombre
         self.año = año
         self.autor = autor
-
+        
+    def __str__ (self):
+        return f"{self.nombre} escrito por {self.autor} en el año {self.año}"
+        
 
 class Biblioteca:
     def __init__(self):
-        self.lista_de_libros = self.descargar_datos()
+        self.lista_de_libros = []
 
     def libro_existe(self, nombre, autor, año):
         for libro in self.lista_de_libros:
@@ -19,39 +22,42 @@ class Biblioteca:
                 return True
         return False
 
-    def buscar_elemento_por_nombre(self, mensaje):
-        nombre = pedir_texto(mensaje)
+    def buscar_elemento_por_nombre(self, nombre):
+        encontrado = False
         for libro in self.lista_de_libros:
             if libro.nombre == nombre:
                 print(
-                    f"\nHa seleccionado el libro {libro.nombre}, escrito por {libro.autor} en el año {libro.año}\n"
+                    f"\nHa seleccionado el libro {libro}\n"
                 )
-            else:
-                print(f"\nEl libro {nombre} no está en la base de datos.\n")
+                encontrado = True
+        if not encontrado:
+            print(f"\nEl libro {nombre} no está en la base de datos.\n")
 
-    def buscar_elemento_por_autor(self, mensaje):
-        autor = pedir_texto(mensaje)
+    def buscar_elemento_por_autor(self, autor):
+        encontrado = False
         for libro in self.lista_de_libros:
             if libro.autor == autor:
                 print(
-                    f"\nHa seleccionado el libro {libro.nombre}, escrito por {libro.autor} en el año {libro.año}\n"
+                    f"\nHa seleccionado el libro {libro}\n"
                 )
-            else:
-                print(
-                    f"\nNo se encuentra ningún libro escrito por {autor} en la base de datos.\n"
-                )
+                encontrado = True
+        if not encontrado:
+            print(
+                f"\nNo se encuentra ningún libro escrito por {autor} en la base de datos.\n"
+            )
 
-    def buscar_elemento_por_año(self, mensaje):
-        año = pedir_numero(mensaje)
+    def buscar_elemento_por_año(self, año):
+        encontrado = False
         for libro in self.lista_de_libros:
             if libro.año == año:
                 print(
-                    f"\nHa seleccionado el libro {libro.nombre}, escrito por {libro.autor} en el año {libro.año}\n"
+                    f"\nHa seleccionado el libro {libro}\n"
                 )
-            else:
-                print(
-                    f"\nNo se encuentra ningún libro escrito en el año {año} la base de datos.\n"
-                )
+                encontrado = True
+        if not encontrado:
+            print(
+                f"\nNo se encuentra ningún libro escrito en el año {año} la base de datos.\n"
+            )
 
     def añadir_libro(self, libro):
         self.lista_de_libros.append(libro)
@@ -60,7 +66,7 @@ class Biblioteca:
         ordenados = sorted(self.lista_de_libros, key=lambda x: x.nombre)
         for i, libro in enumerate(ordenados, start=1):
             print(
-                f"{i}. Nombre del libro: {libro.nombre}, Autor: {libro.autor}, Año: {libro.año}"
+                f"{i}. Nombre del libro: {libro}"
             )
 
     def convertir_datos_a_diccionario(self):
@@ -152,6 +158,9 @@ def encontrar(opcion, opciones):
 
 def jugar():
     mi_biblioteca = Biblioteca()
+    lista_reconstituida = mi_biblioteca.descargar_datos()
+    mi_biblioteca.lista_de_libros = lista_reconstituida
+    
     print(
         """\nEjercicio: Base de datos de libros. \nCada libro tiene título, autor, año. Permite: \nañadir libro, buscar por autor, listar todos, salir.\n"""
     )
@@ -191,15 +200,16 @@ def jugar():
                 buscar = pedir_numero("\n")
 
             if buscar == 1:
-                mi_biblioteca.buscar_elemento_por_nombre(
-                    "\nNombre del libro a buscar: "
-                )
+                nombre = pedir_texto("\nNombre del libro a buscar: ")
+                mi_biblioteca.buscar_elemento_por_nombre(nombre)
 
             elif buscar == 2:
-                mi_biblioteca.buscar_elemento_por_autor("\nAutor: ")
+                autor_buscado = pedir_texto("\nAutor: ")
+                mi_biblioteca.buscar_elemento_por_autor(autor_buscado)
 
             elif buscar == 3:
-                mi_biblioteca.buscar_elemento_por_año("\nAño del libro: ")
+                año_buscado = pedir_numero("\nAño del libro: ")
+                mi_biblioteca.buscar_elemento_por_año(año_buscado)
 
         elif seleccion == 3:
             if not mi_biblioteca.lista_de_libros:
